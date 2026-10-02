@@ -60,15 +60,7 @@ This project is a **Django-based Learning Management System (LMS)** designed for
 
 ---
 
-## 📽 Demo Video
 
-You can watch the project in action here:
-
-![Project Demo](path-to-your-video.gif)
-
-> Replace `path-to-your-video.gif` with your actual video or GIF file in the repo.
-
----
 
 ## 🛠 Installation
 
