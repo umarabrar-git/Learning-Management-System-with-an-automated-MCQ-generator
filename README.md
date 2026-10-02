@@ -1,22 +1,3 @@
-Great — here’s how you can embed the video link into the README and make it look polished:
-
----
-
-## 📽 Demo Video
-
-You can watch the project in action here:
-[▶ Watch Demo Video on YouTube](https://youtu.be/Pl4YZ1LzM38)
-
-Or embed it directly (if GitHub supports the preview):
-
-```markdown
-[![Project Demo Video](https://img.youtube.com/vi/Pl4YZ1LzM38/0.jpg)](https://youtu.be/Pl4YZ1LzM38)
-```
-
-Clicking the thumbnail will open the video: [https://youtu.be/Pl4YZ1LzM38](https://youtu.be/Pl4YZ1LzM38)
-
-
-
 # Auto-MCQ-ML-LMS
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python\&logoColor=white)](https://www.python.org/)
