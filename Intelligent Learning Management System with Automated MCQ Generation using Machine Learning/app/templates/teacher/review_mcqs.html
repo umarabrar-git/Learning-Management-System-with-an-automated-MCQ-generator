@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Generated MCQs{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h3>Review Generated Questions</h3>
+        <p class="mb-0">Subject: {{ subject.name }} | Difficulty: {{ difficulty|title }}</p>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'save_generated_mcqs' %}">
+            {% csrf_token %}
+            <div class="row">
+                {% for mcq in mcqs %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Question {{ forloop.counter }}</h5>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="save_{{ forloop.counter0 }}" 
+                                       name="save_{{ forloop.counter0 }}" checked>
+                                <label class="form-check-label" for="save_{{ forloop.counter0 }}">Save</label>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ mcq.question }}</p>
+                            <ol type="A">
+                                {% for option in mcq.options %}
+                                <li class="{% if option == mcq.correct_answer %}text-success fw-bold{% endif %}">
+                                    {{ option }}
+                                </li>
+                                {% endfor %}
+                            </ol>
+                            <div class="mt-2 p-2 bg-light">
+                                <small class="text-muted">{{ mcq.explanation }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="d-grid gap-2 mt-3">
+                <button type="submit" class="btn btn-success">Save Selected Questions</button>
+                <a href="{% url 'auto_generate_mcqs' %}" class="btn btn-secondary">Back to Generator</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

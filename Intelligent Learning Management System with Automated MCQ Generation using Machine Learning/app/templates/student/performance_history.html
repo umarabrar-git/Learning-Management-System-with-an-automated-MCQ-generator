@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}My Performance History{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h3>My Test Performance</h3>
+    </div>
+    
+    <div class="card-body">
+        {% if attempts %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>Course</th>
+                        <th>Date Taken</th>
+                        <th>Score</th>
+                        <th>Result</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attempt in attempts %}
+                    <tr>
+                        <td>{{ attempt.test.title }}</td>
+                        <td>{{ attempt.test.course.name|default:"-" }}</td>
+                        <td>{{ attempt.completed_at|date:"M d, Y" }}</td>
+                        <td>
+                            <span class="badge rounded-pill 
+                                {% if attempt.score >= 70 %}bg-success
+                                {% elif attempt.score >= 50 %}bg-warning
+                                {% else %}bg-danger{% endif %}">
+                                {{ attempt.score|floatformat:1 }}%
+                            </span>
+                        </td>
+                        <td>
+                            {% if attempt.score >= attempt.test.passing_score %}
+                            <span class="text-success">Passed</span>
+                            {% else %}
+                            <span class="text-danger">Failed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'test_result' attempt.id %}" 
+                               class="btn btn-sm btn-outline-primary">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5>Performance Trend</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="performanceChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5>Score Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="scoreChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            You haven't taken any tests yet.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Performance Trend Chart
+    const ctx1 = document.getElementById('performanceChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: [{% for attempt in attempts %}"{{ attempt.test.title|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Your Score',
+                data: [{% for attempt in attempts %}{{ attempt.score|floatformat:1 }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Score (%)'
+                    }
+                }
+            }
+        }
+    });
+
+    // Score Distribution Chart
+    const ctx2 = document.getElementById('scoreChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['Passed', 'Failed'],
+            datasets: [{
+                data: [
+                    {{ passed_count }},
+                    {{ failed_count }}
+                ],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(220, 53, 69, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ${context.raw} test(s)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

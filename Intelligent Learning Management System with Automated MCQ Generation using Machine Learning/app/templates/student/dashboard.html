@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'enroll_course' %}" class="btn btn-success mb-2 w-100">
+                    <i class="bi bi-journal-plus"></i> Enroll in Courses
+                </a>
+                {% if active_tests %}
+                <a href="#active-tests" class="btn btn-primary mb-2 w-100">
+                    <i class="bi bi-pencil-square"></i> Take Available Tests
+                </a>
+                {% endif %}
+                <a href="{% url 'performance_history' %}" class="btn btn-info w-100">
+                    <i class="bi bi-graph-up"></i> View Performance
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5>Your Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>Enrolled Courses</h6>
+                    <span class="badge bg-primary rounded-pill">
+                        {{ enrolled_courses.count }}
+                    </span>
+                </div>
+                <div class="mb-3">
+                    <h6>Tests Completed</h6>
+                    <span class="badge bg-success rounded-pill">
+                        {{ completed_tests }}
+                    </span>
+                </div>
+                <div>
+                    <h6>Average Score</h6>
+                    <span class="badge bg-warning rounded-pill">
+                        {{ average_score|default:"N/A" }}%
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5>Your Enrolled Courses</h5>
+            </div>
+            <div class="card-body">
+                {% if enrolled_courses %}
+                <div class="list-group">
+                    {% for enrollment in enrolled_courses %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <h5>{{ enrollment.course.name }}</h5>
+                            <span class="badge bg-secondary">
+                                {{ enrollment.course.code }}
+                            </span>
+                        </div>
+                        <p class="mb-1">{{ enrollment.course.description|truncatechars:100 }}</p>
+                        <small>Instructor: {{ enrollment.course.instructor.get_full_name }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    You are not enrolled in any courses yet.
+                    <a href="{% url 'enroll_course' %}" class="alert-link">Enroll now</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card" id="active-tests">
+            <div class="card-header bg-primary text-white">
+                <h5>Available Tests</h5>
+            </div>
+            <div class="card-body">
+                {% if active_tests %}
+                <div class="list-group">
+                    {% for test in active_tests %}
+                    <a href="{% url 'take_test' test.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <h5>{{ test.title }}</h5>
+                            <span class="badge bg-info">
+                                {{ test.course.name|default:"General" }}
+                            </span>
+                        </div>
+                        <p class="mb-1">{{ test.description|truncatechars:80 }}</p>
+                        <small>
+                            Available until: {{ test.available_to|date:"M d, Y" }} | 
+                            Time limit: {{ test.time_limit }} minutes
+                        </small>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    No tests available at this time.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate MCQs{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3>Generate MCQs from Text</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_text" class="form-label">Paste your text content:</label>
+                        <textarea class="form-control" id="id_text" name="text" rows="8" required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_subject" class="form-label">Subject:</label>
+                            {{ form.subject }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="id_difficulty" class="form-label">Difficulty:</label>
+                            {{ form.difficulty }}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-gear"></i> Generate Questions
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Results{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-{% if attempt.score >= 60 %}success{% else %}danger{% endif %} text-white">
+        <h3>Test Results</h3>
+        <h4>Score: {{ attempt.score|floatformat:2 }}%</h4>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong>Test:</strong> {{ attempt.test.title }}</p>
+                <p><strong>Date Taken:</strong> {{ attempt.completed_at|date:"F j, Y" }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Correct Answers:</strong> {{ attempt.correct_answers }}/{{ attempt.total_questions }}</p>
+                <p><strong>Time Taken:</strong> {{ attempt.completed_at|timeuntil:attempt.started_at }}</p>
+            </div>
+        </div>
+        
+        <h5>Question Breakdown:</h5>
+        {% for result in results %}
+        <div class="mb-3 p-3 border rounded {% if result.is_correct %}border-success{% else %}border-danger{% endif %}">
+            <p><strong>Question:</strong> {{ result.question.question_text }}</p>
+            <p><strong>Your Answer:</strong> 
+                <span class="{% if result.is_correct %}correct{% else %}incorrect{% endif %}">
+                    {{ result.selected_option }} ({{ result.question.get_option_display }})
+                </span>
+            </p>
+            <p><strong>Correct Answer:</strong> {{ result.question.correct_answer }}</p>
+            {% if result.question.explanation %}
+            <div class="alert alert-info mt-2">
+                <strong>Explanation:</strong> {{ result.question.explanation }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    <div class="card-footer">
+        <a href="{% url 'performance_history' %}" class="btn btn-primary">View Performance History</a>
+    </div>
+</div>
+{% endblock %}

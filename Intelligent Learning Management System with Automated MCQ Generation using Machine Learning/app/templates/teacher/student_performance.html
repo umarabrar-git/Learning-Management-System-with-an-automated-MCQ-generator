@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Performance Analytics{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3>Student Performance Analytics</h3>
+            <form method="get" class="form-inline">
+                <select name="course_id" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Courses</option>
+                    {% for course in courses %}
+                    <option value="{{ course.id }}" 
+                        {% if request.GET.course_id == course.id|stringformat:"s" %}selected{% endif %}>
+                        {{ course.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        {% if performance_data %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Student</th>
+                        <th>Tests Taken</th>
+                        <th>Avg Score</th>
+                        <th>Progress</th>
+                        <th>Weak Areas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in performance_data %}
+                    <tr>
+                        <td>
+                            <strong>{{ student.student.get_full_name }}</strong>
+                            <div class="text-muted small">{{ student.student.email }}</div>
+                        </td>
+                        <td>{{ student.attempts }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if student.avg_score >= 70 %}bg-success
+                                {% elif student.avg_score >= 50 %}bg-warning
+                                {% else %}bg-danger{% endif %}">
+                                {{ student.avg_score|floatformat:1 }}%
+                            </span>
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar 
+                                    {% if student.avg_score >= 70 %}bg-success
+                                    {% elif student.avg_score >= 50 %}bg-warning
+                                    {% else %}bg-danger{% endif %}" 
+                                    role="progressbar" 
+                                    style="width: {{ student.avg_score }}%" 
+                                    aria-valuenow="{{ student.avg_score }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="100">
+                                    {{ student.avg_score|floatformat:1 }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if student.weak_areas %}
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                        type="button" data-bs-toggle="dropdown">
+                                    View Topics
+                                </button>
+                                <ul class="dropdown-menu">
+                                    {% for area in student.weak_areas %}
+                                    <li class="dropdown-item-text small">
+                                        {{ area.topic }} ({{ area.score }}%)
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% else %}
+                            <span class="text-muted">No data</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5>Class Performance Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="performanceChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5>Test Completion Rate</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="completionChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            No performance data available for the selected course.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Chart.js for visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Performance Distribution Chart
+    const ctx1 = document.getElementById('performanceChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: ['<50%', '50-69%', '70-89%', '90-100%'],
+            datasets: [{
+                label: 'Number of Students',
+                data: [
+                    {{ performance_ranges.0 }},
+                    {{ performance_ranges.1 }},
+                    {{ performance_ranges.2 }},
+                    {{ performance_ranges.3 }}
+                ],
+                backgroundColor: [
+                    'rgba(220, 53, 69, 0.7)',
+                    'rgba(255, 193, 7, 0.7)',
+                    'rgba(25, 135, 84, 0.7)',
+                    'rgba(13, 110, 253, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(220, 53, 69, 1)',
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(25, 135, 84, 1)',
+                    'rgba(13, 110, 253, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Students'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Score Ranges'
+                    }
+                }
+            }
+        }
+    });
+
+    // Test Completion Chart
+    const ctx2 = document.getElementById('completionChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'In Progress', 'Not Started'],
+            datasets: [{
+                data: [
+                    {{ completion_stats.completed }},
+                    {{ completion_stats.in_progress }},
+                    {{ completion_stats.not_started }}
+                ],
+                backgroundColor: [
+                    'rgba(25, 135, 84, 0.7)',
+                    'rgba(255, 193, 7, 0.7)',
+                    'rgba(108, 117, 125, 0.7)'
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ${context.raw} students`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
